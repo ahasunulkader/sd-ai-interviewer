@@ -1,0 +1,29 @@
+# Secrets
+.env
+
+# Java / Maven
+backend/target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# Node / Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Harness working data (transcripts may be large; keep labels, not raw exports)
+harness/sessions/*.json
+
+# Local Claude Code skill tooling (not part of this project's source)
+.agents/
+skills-lock.json
