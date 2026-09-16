@@ -98,21 +98,16 @@ sd-ai-interviewer/
 
 ## 3. Local development environment
 
-`docker-compose.yml` at repo root — everything needed to run locally except the LLM APIs
-themselves (those are free-tier cloud calls, no local mock needed for manual dev, but see §8
-for automated tests where they're mocked).
+**Postgres runs natively** on this machine (PostgreSQL 18 as a Windows service), not via
+Docker — it was already installed and running before this project started, so there's no
+reason to containerize it too. The `interviewer` database and role are already created.
+
+**Redis and Kafka run via Docker Compose** (`docker-compose.yml` at repo root), using WSL2 as
+the backend (see the ADR-style note at the end of this section for why Redis/Kafka specifically
+needed this and Postgres didn't):
 
 ```yaml
 services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: interviewer
-      POSTGRES_USER: interviewer
-      POSTGRES_PASSWORD: interviewer
-    ports: ["5432:5432"]
-    volumes: ["pgdata:/var/lib/postgresql/data"]
-
   redis:
     image: redis:7
     ports: ["6379:6379"]
@@ -127,10 +122,16 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-
-volumes:
-  pgdata:
 ```
+
+Why Postgres didn't need Docker/WSL2 but Redis and Kafka did: Postgres ships an actively
+maintained native Windows installer (EnterpriseDB). Redis's maintainers only build for
+Linux/macOS — no supported native Windows build exists. Kafka is JVM-based and technically
+has Windows `.bat` scripts, but is known to be unreliable on Windows (NTFS file-locking
+issues), so nobody runs it that way in practice. Docker (backed by WSL2, since this machine
+had virtualization disabled in BIOS/firmware until it was enabled for this project) gives
+both a real Linux environment to run in, which also happens to mirror how these services
+actually run in production almost everywhere.
 
 Environment variables (`.env`, gitignored; `.env.example` committed — NFR-8):
 
